@@ -1,10 +1,24 @@
 #! /run/current-system/sw/bin/zsh
 
-FILE="lol_game_client/filearchives/0.0.0.101/Archive_65416656.raf"
-TARGETS="LEVELS/Map3/World.ini"
-
 cabal configure || exit 1
 cabal build     || exit 1
 
-./dist/build/rafextract/rafextract "$FILE" "$TARGETS"
+mkdir -p tmp
+cd tmp
 
+find ../lol_game_client -name "*.raf" | while read fn; do
+  ../dist/build/raflist/raflist "$fn" | while read target; do
+    ../dist/build/rafextract/rafextract "$fn" "$target"
+    if [ $? -ne 0 ]; then
+      echo "$fn"
+      echo "$target"
+      exit 1
+    fi
+    rm -f $(basename "$target")
+  done
+done
+
+cd ..
+rm -r tmp
+
+exit 0
