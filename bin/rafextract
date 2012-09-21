@@ -1,6 +1,8 @@
 #! /run/current-system/sw/bin/zsh
 
-EXIT=0
+TRIED=0
+EXTRACTED=0
+RATIO=
 
 cabal configure || exit 1
 cabal build     || exit 1
@@ -8,19 +10,43 @@ cabal build     || exit 1
 mkdir -p tmp
 cd tmp
 
+trap "break" 2
+
 find ../lol_game_client -name "*.raf" | while read fn; do
+  trap "break;break" 2
   ../dist/build/raflist/raflist "$fn" | while read target; do
-    ../dist/build/rafextract/rafextract "$fn" "$target"
-    if [ $? -ne 0 ]; then
-      echo "$fn"
-      echo "$target"
-      EXIT=1
+    ../dist/build/rafextract/rafextract "$fn" "$target" 2>/dev/null
+    TRIED=$((TRIED+1))
+
+    if [ $? -eq 0 ]; then
+      EXTRACTED=$((EXTRACTED+1))
+    else
+      echo "$fn ($taget) failed to extract."
     fi
     rm -f $(basename "$target")
   done
 done
 
+trap "" 2
+
 cd ..
 rm -r tmp
 
-exit $EXIT
+if [ $EXTRACTED -eq 0 ]; then
+  if [ $TRIED -eq 0 ]; then
+    RATIO=100
+  else
+    RATIO=0
+  fi
+else
+  RATIO=$((100.0 * $TRIED.0 / $EXTRACTED.0))
+fi
+
+echo "$TRIED tried, $EXTRACTED extracted $(printf "%.2f%%" $RATIO)."
+
+if [ $TRIED -ne $EXTRACTED ]; then
+  exit 1
+else
+  exit 0
+fi
+
