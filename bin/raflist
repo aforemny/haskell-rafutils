@@ -1,0 +1,15 @@
+#! /run/current-system/sw/bin/zsh
+
+cabal configure || exit 1
+cabal build     || exit 1
+
+find lol_game_client -name "*.raf" | while read fn; do
+  ./dist/build/raflist/raflist "$fn"
+  if [ $? -ne 0 ]; then
+    echo "$fn"
+    exit 1
+  fi
+done
+
+exit 0
+

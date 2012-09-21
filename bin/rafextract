@@ -1,0 +1,10 @@
+#! /run/current-system/sw/bin/zsh
+
+FILE="lol_game_client/filearchives/0.0.0.101/Archive_65416656.raf"
+TARGETS="LEVELS/Map3/World.ini"
+
+cabal configure || exit 1
+cabal build     || exit 1
+
+./dist/build/rafextract/rafextract "$FILE" "$TARGETS"
+
