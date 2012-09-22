@@ -8,14 +8,13 @@ cabal configure || exit 1
 cabal build     || exit 1
 
 mkdir -p tmp
-cd tmp
 
 trap "break" 2
 
-find ../lol_game_client -name "*.raf" | while read fn; do
+find ./lol_game_client -name "*.raf" | while read fn; do
   trap "break;break" 2
-  ../dist/build/raflist/raflist "$fn" | while read target; do
-    ../dist/build/rafextract/rafextract "$fn" "$target" 2>/dev/null
+  ./dist/build/raflist/raflist "$fn" | while read target; do
+    ./dist/build/rafextract/rafextract -b -C "tmp" "$fn" "$target" # 2>/dev/null
     TRIED=$((TRIED+1))
 
     if [ $? -eq 0 ]; then
@@ -29,7 +28,6 @@ done
 
 trap "" 2
 
-cd ..
 rm -r tmp
 
 if [ $EXTRACTED -eq 0 ]; then
